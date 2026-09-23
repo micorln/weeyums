@@ -1,0 +1,29 @@
+INSTRUCTION SET
+
+LOAD   R1, 42
+MOV    R1, R2
+ADD    R1, R2
+SUB    R1, R2
+MUL    R1, R2
+
+LOADM  R1, 1000
+STOREM R1, 1000
+
+CMP    R1, R2
+JMP    address
+JZ     address
+
+PUSH   R1
+POP    R1
+CALL   address
+RET
+
+HALT
+
+/*
+NOTES : 
+
+Output of an operation will be stored in R0
+LOADM and STOREM accept pointers
+JZ jumps if the value in R0 is 0.
+*/

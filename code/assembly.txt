@@ -1,0 +1,8 @@
+LOAD, 0, 20,
+LOAD, 1, 20,
+ADD,  0, 1,
+STOREM, 0, 100,
+LOADM, 1, 100,
+ADD, 0, 1, 
+STOREM, 0, 50000,
+HALT, 0, 0

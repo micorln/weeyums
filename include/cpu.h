@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include "timer.h"
 
 #ifndef CPU_H
 #define CPU_H
@@ -11,6 +12,7 @@ struct CPU {
     uint16_t *memory;
     bool halted;
     uint16_t * flags;
+    struct Timer timer;
 };
 
 uint16_t mem_read(struct CPU *cpu, uint16_t addr);

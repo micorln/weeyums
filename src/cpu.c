@@ -5,6 +5,7 @@
 #include <string.h>
 #include "opcodes.h"
 #include "cpu.h"
+#include "timer.h"
 
 #define REG_COUNT 8
 #define REG_SIZE_IN_BYTES 1
@@ -15,6 +16,10 @@
 #define NUM_FLAGS 1
 #define RAM_END MEMORY_SIZE_IN_BYTES - MEMORY_SIZE_IN_BYTES / 3
 #define SERIAL_DEVICE 50000
+#define TIMER_COUNTER 60000
+#define TIMER_STATUS 60001
+#define TIMER_COMPARE 60002
+
 
 
 struct instruction fetch(struct CPU* cpu)
@@ -99,6 +104,26 @@ void mem_write(struct CPU *cpu, uint16_t addr, uint16_t value)
         fflush(stdout);
         return;
     }
+    if (addr == TIMER_COUNTER) {
+        if (value > 1) {
+            printf("Error: Timer counter value must be 0 or 1.\n");
+            return;
+        }
+        cpu->timer.timer_counter += value;
+        return;
+    }
+    if (addr == TIMER_STATUS) {
+        if (value != 0 && value != 1) {
+            printf("Error: Timer status value must be 0 or 1.\n");
+            return;
+        }
+        cpu->timer.timer_status = value;
+        return;
+    }
+    if (addr == TIMER_COMPARE) {
+        cpu->timer.timer_compare = value;
+        return;
+    }
     cpu->memory[addr] = value;
 }
 
@@ -112,12 +137,25 @@ void instantiate_cpu(struct CPU *cpu)
     cpu->flags = (uint16_t *) malloc(NUM_FLAGS * sizeof(uint16_t)); 
 }
 
+void timer_tick(struct Timer *timer)
+{
+    if (timer->timer_status == 0) {
+        timer->timer_counter++;
+        if (timer->timer_counter >= timer->timer_compare) {
+            printf("Timer interrupt triggered!\n");
+            timer->timer_status = 1; // Set the timer status to indicate an interrupt
+            timer->timer_counter = 0; // Reset the counter after reaching the compare value
+        }
+    }
+}
+
 void start_cpu(struct CPU *cpu)
 {
     while (!cpu->halted) 
     {
         struct instruction insr = fetch(cpu);
         decode(cpu, insr);
+        timer_tick(&cpu->timer); // Call the timer tick function after each instruction
     }
 }
 
@@ -165,15 +203,6 @@ int main(int argc, char *argv[])
     }
 
     printf("\n");
-    // uint16_t code[] = {
-    //     LOAD, 0, 20,
-    //     LOAD, 1, 20,
-    //     ADD,  0, 1,
-    //     STOREM, 0, 100,
-    //     LOADM, 1, 100,
-    //     ADD, 0, 1, 
-    //     HALT, 0, 0
-    // };
 
     for (int i = 0; i < code_size; i++) 
     {
